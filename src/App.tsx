@@ -9,7 +9,6 @@ import PrivateRoute from './components/common/PrivateRoute';
 // eslint-disable-next-line
 import 'bootswatch/dist/cosmo/bootstrap.min.css';
 import './App.css';
-import { Cabecera } from './components/Cabecera';
 
 function App() {
   return (
