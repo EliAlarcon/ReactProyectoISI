@@ -1,40 +1,37 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-
-interface User {
-  id: string;
-  name: string;
-  role: 'admin' | 'professor';
-}
+import { User } from '../types/User';
+import { userService } from '../services/userService';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>; // Cambiado para reflejar el tipo correcto
   logout: () => void;
+  loading: boolean; // Indicador de carga
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true); // Inicialmente en true
 
   useEffect(() => {
-    // Check if user is stored in local storage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+    setLoading(false); // Una vez cargado el usuario, establecemos loading en false
   }, []);
 
-  const login = async (email: string, password: string) => {
-    // Here you would typically make an API call to validate credentials
-    // For this example, we'll just simulate a successful login
-    const mockUser: User = {
-      id: '1',
-      name: 'John Doe',
-      role: email.includes('admin') ? 'admin' : 'professor',
-    };
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+  const login = async (email: string, password: string): Promise<User | null> => {
+    const loggedInUser = await userService.login(email, password);
+    if (loggedInUser) {
+      setUser(loggedInUser);
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
+      return loggedInUser; // Retornar el usuario logueado
+    } else {
+      throw new Error('Invalid credentials');
+    }
   };
 
   const logout = () => {
@@ -43,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

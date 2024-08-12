@@ -7,22 +7,22 @@ const NavBar: React.FC = () => {
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div className="container-fluid"> {/* Cambiado a container-fluid para ocupar todo el ancho */}
+      <div className="container-fluid">
         <Link className="navbar-brand" to="/">Sistema de Gestión Académica</Link>
-        <div className="d-flex"> {/* Contenedor para alinear el botón a la derecha */}
-          <ul className="navbar-nav"> 
-          {user && (
-            <>
-              <li className="nav-item">
-                <span className="nav-link">
-                  {user.name} - {user.role === 'admin' ? 'Administrador' : 'Profesor'}
-                </span>
-              </li>
-              <li className="nav-item">
-                <button className="btn btn-outline-light" onClick={logout}>Cerrar sesión</button>
-              </li>
-            </>
-          )}
+        <div className="d-flex">
+          <ul className="navbar-nav">
+            {user && (
+              <>
+                <li className="nav-item">
+                  <span className="nav-link">
+                    {user.nombre} - {user.tipo === 'Administrador' ? 'Administrador' : 'Profesor'}
+                  </span>
+                </li>
+                <li className="nav-item">
+                  <button className="btn btn-outline-light" onClick={logout}>Cerrar sesión</button>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>

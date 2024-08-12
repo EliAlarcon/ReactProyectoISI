@@ -1,31 +1,82 @@
-import React, { useState } from 'react';
-import { Table, Button, Modal, Form } from 'react-bootstrap';
-
-interface Usuario {
-  id: number;
-  nombre: string;
-  email: string;
-  rol: string;
-}
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import { Table, Button, Modal, Form, Alert } from 'react-bootstrap';
+import { User } from '../../types/User';
+import { userService } from '../../services/userService';
 
 const ManageUsers: React.FC = () => {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([
-    { id: 1, nombre: 'Juan Pérez', email: 'juan@ejemplo.com', rol: 'Profesor' },
-    { id: 2, nombre: 'María García', email: 'maria@ejemplo.com', rol: 'Administrador' },
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [nuevoUsuario, setNuevoUsuario] = useState({ nombre: '', email: '', rol: '' });
+  const [currentUser, setCurrentUser] = useState<User>({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: '' });
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddUser = () => {
-    setUsuarios([...usuarios, { ...nuevoUsuario, id: usuarios.length + 1 }]);
-    setShowModal(false);
-    setNuevoUsuario({ nombre: '', email: '', rol: '' });
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const data = await userService.getAllUsers();
+      setUsers(data);
+    } catch (err) {
+      setError('Error fetching users');
+    }
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCurrentUser({ ...currentUser, [name]: value });
+  };
+
+  const handleAddUser = async () => {
+    try {
+      await userService.createUser(currentUser);
+      setShowModal(false);
+      setCurrentUser({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: '' });
+      fetchUsers();
+    } catch (err) {
+      setError('Error adding user');
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    try {
+      await userService.updateUser(currentUser.idUsuario, currentUser);
+      setShowModal(false);
+      setCurrentUser({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: '' });
+      setIsEditing(false);
+      fetchUsers();
+    } catch (err) {
+      setError('Error updating user');
+    }
+  };
+
+  const handleDeleteUser = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        await userService.deleteUser(id);
+        fetchUsers();
+      } catch (err) {
+        setError('Error deleting user');
+      }
+    }
+  };
+
+  const openEditModal = (user: User) => {
+    setCurrentUser(user);
+    setIsEditing(true);
+    setShowModal(true);
   };
 
   return (
     <div className="container mt-4">
       <h1>Gestionar Usuarios</h1>
-      <Button variant="primary" className="mb-3" onClick={() => setShowModal(true)}>
+      {error && <Alert variant="danger">{error}</Alert>}
+      <Button variant="primary" className="mb-3" onClick={() => {
+        setCurrentUser({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: '' });
+        setIsEditing(false);
+        setShowModal(true);
+      }}>
         Añadir Nuevo Usuario
       </Button>
       <Table striped bordered hover>
@@ -33,21 +84,23 @@ const ManageUsers: React.FC = () => {
           <tr>
             <th>ID</th>
             <th>Nombre</th>
+            <th>Apellido</th>
             <th>Email</th>
-            <th>Rol</th>
+            <th>Tipo</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {usuarios.map((usuario) => (
-            <tr key={usuario.id}>
-              <td>{usuario.id}</td>
-              <td>{usuario.nombre}</td>
-              <td>{usuario.email}</td>
-              <td>{usuario.rol}</td>
+          {users.map((user) => (
+            <tr key={user.idUsuario}>
+              <td>{user.idUsuario}</td>
+              <td>{user.nombre}</td>
+              <td>{user.apellido}</td>
+              <td>{user.email}</td>
+              <td>{user.tipo}</td>
               <td>
-                <Button variant="info" size="sm" className="me-2">Editar</Button>
-                <Button variant="danger" size="sm">Eliminar</Button>
+                <Button variant="info" size="sm" className="me-2" onClick={() => openEditModal(user)}>Editar</Button>
+                <Button variant="danger" size="sm" onClick={() => handleDeleteUser(user.idUsuario)}>Eliminar</Button>
               </td>
             </tr>
           ))}
@@ -56,7 +109,7 @@ const ManageUsers: React.FC = () => {
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Añadir Nuevo Usuario</Modal.Title>
+          <Modal.Title>{isEditing ? 'Editar Usuario' : 'Añadir Nuevo Usuario'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -65,8 +118,19 @@ const ManageUsers: React.FC = () => {
               <Form.Control 
                 type="text" 
                 placeholder="Ingrese nombre" 
-                value={nuevoUsuario.nombre}
-                onChange={(e) => setNuevoUsuario({...nuevoUsuario, nombre: e.target.value})}
+                name="nombre"
+                value={currentUser.nombre}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Apellido</Form.Label>
+              <Form.Control 
+                type="text" 
+                placeholder="Ingrese apellido" 
+                name="apellido"
+                value={currentUser.apellido}
+                onChange={handleInputChange}
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -74,21 +138,35 @@ const ManageUsers: React.FC = () => {
               <Form.Control 
                 type="email" 
                 placeholder="Ingrese email" 
-                value={nuevoUsuario.email}
-                onChange={(e) => setNuevoUsuario({...nuevoUsuario, email: e.target.value})}
+                name="email"
+                value={currentUser.email}
+                onChange={handleInputChange}
               />
             </Form.Group>
+            {!isEditing && (
+              <Form.Group className="mb-3">
+                <Form.Label>Contraseña</Form.Label>
+                <Form.Control 
+                  type="password" 
+                  placeholder="Ingrese contraseña" 
+                  name="contrasena"
+                  value={currentUser.contrasena}
+                  onChange={handleInputChange}
+                />
+              </Form.Group>
+            )}
             <Form.Group className="mb-3">
-              <Form.Label>Rol</Form.Label>
-              <Form.Control 
-                as="select"
-                value={nuevoUsuario.rol}
-                onChange={(e) => setNuevoUsuario({...nuevoUsuario, rol: e.target.value})}
+              <Form.Label>Tipo</Form.Label>
+              <Form.Select 
+                name="tipo"
+                value={currentUser.tipo}
+                onChange={handleInputChange}
               >
-                <option value="">Seleccione rol</option>
+                <option value="">Seleccione tipo</option>
                 <option value="Administrador">Administrador</option>
                 <option value="Profesor">Profesor</option>
-              </Form.Control>
+                <option value="Estudiante">Estudiante</option>
+              </Form.Select>
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -96,8 +174,8 @@ const ManageUsers: React.FC = () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cerrar
           </Button>
-          <Button variant="primary" onClick={handleAddUser}>
-            Añadir Usuario
+          <Button variant="primary" onClick={isEditing ? handleUpdateUser : handleAddUser}>
+            {isEditing ? 'Actualizar Usuario' : 'Añadir Usuario'}
           </Button>
         </Modal.Footer>
       </Modal>
