@@ -3,7 +3,7 @@ import { Table, Button, Modal, Form } from 'react-bootstrap';
 
 interface Curso {
   id: number;
-  nombre: string;
+  materia: string;
   profesor: string;
   fechaInicio: string;
   fechaFin: string;
@@ -11,16 +11,16 @@ interface Curso {
 
 const ManageCourses: React.FC = () => {
   const [cursos, setCursos] = useState<Curso[]>([
-    { id: 1, nombre: 'Introducción a la Informática', profesor: 'Dr. Martínez', fechaInicio: '2023-09-01', fechaFin: '2023-12-15' },
-    { id: 2, nombre: 'Matemáticas Avanzadas', profesor: 'Dra. Rodríguez', fechaInicio: '2023-09-01', fechaFin: '2023-12-15' },
+    { id: 1, materia: 'Introducción a la Informática', profesor: 'Dr. Martínez', fechaInicio: '2023-09-01', fechaFin: '2023-12-15' },
+    { id: 2, materia: 'Matemáticas Avanzadas', profesor: 'Dra. Rodríguez', fechaInicio: '2023-09-01', fechaFin: '2023-12-15' },
   ]);
   const [showModal, setShowModal] = useState(false);
-  const [nuevoCurso, setNuevoCurso] = useState({ nombre: '', profesor: '', fechaInicio: '', fechaFin: '' });
+  const [nuevoCurso, setNuevoCurso] = useState({ materia: '', profesor: '', fechaInicio: '', fechaFin: '' });
 
   const handleAddCourse = () => {
     setCursos([...cursos, { ...nuevoCurso, id: cursos.length + 1 }]);
     setShowModal(false);
-    setNuevoCurso({ nombre: '', profesor: '', fechaInicio: '', fechaFin: '' });
+    setNuevoCurso({ materia: '', profesor: '', fechaInicio: '', fechaFin: '' });
   };
 
   return (
@@ -33,7 +33,7 @@ const ManageCourses: React.FC = () => {
         <thead>
           <tr>
             <th>ID</th>
-            <th>Nombre</th>
+            <th>Materia</th>
             <th>Profesor</th>
             <th>Fecha de Inicio</th>
             <th>Fecha de Fin</th>
@@ -44,7 +44,7 @@ const ManageCourses: React.FC = () => {
           {cursos.map((curso) => (
             <tr key={curso.id}>
               <td>{curso.id}</td>
-              <td>{curso.nombre}</td>
+              <td>{curso.materia}</td>
               <td>{curso.profesor}</td>
               <td>{curso.fechaInicio}</td>
               <td>{curso.fechaFin}</td>
@@ -64,12 +64,12 @@ const ManageCourses: React.FC = () => {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Nombre del Curso</Form.Label>
+              <Form.Label>Materia del Curso</Form.Label>
               <Form.Control 
                 type="text" 
-                placeholder="Ingrese nombre del curso" 
-                value={nuevoCurso.nombre}
-                onChange={(e) => setNuevoCurso({...nuevoCurso, nombre: e.target.value})}
+                placeholder="Ingrese la materia a impartir" 
+                value={nuevoCurso.materia}
+                onChange={(e) => setNuevoCurso({...nuevoCurso, materia: e.target.value})}
               />
             </Form.Group>
             <Form.Group className="mb-3">

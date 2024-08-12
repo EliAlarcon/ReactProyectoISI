@@ -5,6 +5,8 @@ import AdminSidebar from '../components/admin/AdminSidebar';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import ManageUsers from '../pages/admin/ManageUsers';
 import ManageCourses from '../pages/admin/ManageCourses';
+import { ManageSubjects } from '../pages/admin/ManageSubjects';
+import { ManageStudents } from '../pages/admin/ManageStudents';
 
 const AdminLayout: React.FC = () => {
   return (
@@ -20,6 +22,8 @@ const AdminLayout: React.FC = () => {
               <Route path="/" element={<AdminDashboard />} />
               <Route path="/users" element={<ManageUsers />} />
               <Route path="/courses" element={<ManageCourses />} />
+              <Route path="/subjects" element={<ManageSubjects />} />
+              <Route path="/students" element={<ManageStudents />} />
             </Routes>
           </main>
         </div>
