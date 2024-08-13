@@ -15,6 +15,7 @@ const LoginPage: React.FC = () => {
 
     try {
       const user = await login(email, password);
+      console.log(user);
       if (user?.tipo === 'Administrador') {
         navigate('/admin');
       } else if (user?.tipo === 'Profesor') {
@@ -24,6 +25,7 @@ const LoginPage: React.FC = () => {
       }
     } catch (err) {
       setError('No se pudo iniciar sesión. Verifique sus credenciales.');
+      console.log(email, password);
     }
   };
 
