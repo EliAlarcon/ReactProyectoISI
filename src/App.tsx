@@ -21,9 +21,9 @@ function App() {
             <Route
               path="/admin/*"
               element={
-                <PrivateRoute allowedRoles={['Administrador']}>
+                // <PrivateRoute allowedRoles={['Administrador']}>
                   <AdminLayout />
-                </PrivateRoute>
+                // </PrivateRoute>
               }
             />
             <Route

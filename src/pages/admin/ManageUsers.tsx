@@ -6,7 +6,7 @@ import { userService } from '../../services/userService';
 const ManageUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User>({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: '' });
+  const [currentUser, setCurrentUser] = useState<User>({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: 'Estudiante' });
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +32,7 @@ const ManageUsers: React.FC = () => {
     try {
       await userService.createUser(currentUser);
       setShowModal(false);
-      setCurrentUser({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: '' });
+      resetForm();
       fetchUsers();
     } catch (err) {
       setError('Error adding user');
@@ -43,8 +43,7 @@ const ManageUsers: React.FC = () => {
     try {
       await userService.updateUser(currentUser.idUsuario, currentUser);
       setShowModal(false);
-      setCurrentUser({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: '' });
-      setIsEditing(false);
+      resetForm();
       fetchUsers();
     } catch (err) {
       setError('Error updating user');
@@ -68,13 +67,17 @@ const ManageUsers: React.FC = () => {
     setShowModal(true);
   };
 
+  const resetForm = () => {
+    setCurrentUser({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: 'Estudiante' });
+    setIsEditing(false);
+  };
+
   return (
     <div className="container mt-4">
       <h1>Gestionar Usuarios</h1>
       {error && <Alert variant="danger">{error}</Alert>}
       <Button variant="primary" className="mb-3" onClick={() => {
-        setCurrentUser({ idUsuario: 0, nombre: '', apellido: '', email: '', contrasena: '', tipo: '' });
-        setIsEditing(false);
+        resetForm();
         setShowModal(true);
       }}>
         Añadir Nuevo Usuario
@@ -162,10 +165,9 @@ const ManageUsers: React.FC = () => {
                 value={currentUser.tipo}
                 onChange={handleInputChange}
               >
-                <option value="">Seleccione tipo</option>
-                <option value="Administrador">Administrador</option>
-                <option value="Profesor">Profesor</option>
                 <option value="Estudiante">Estudiante</option>
+                <option value="Profesor">Profesor</option>
+                <option value="Administrador">Administrador</option>
               </Form.Select>
             </Form.Group>
           </Form>
