@@ -37,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    window.location.href = '/login'; // Redirige a la página de login después de cerrar sesión
   };
 
   return (

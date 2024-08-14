@@ -1,26 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form } from 'react-bootstrap';
-
-interface Curso {
-  id: number;
-  materia: string;
-  profesor: string;
-  fechaInicio: string;
-  fechaFin: string;
-}
+import { courseService } from '../../services/courseService';
+import { careerService } from '../../services/careerService';
+import { Curso } from '../../types/Curso';
+import { Carrera } from '../../types/Carrera';
 
 const ManageCourses: React.FC = () => {
-  const [cursos, setCursos] = useState<Curso[]>([
-    { id: 1, materia: 'Introducción a la Informática', profesor: 'Dr. Martínez', fechaInicio: '2023-09-01', fechaFin: '2023-12-15' },
-    { id: 2, materia: 'Matemáticas Avanzadas', profesor: 'Dra. Rodríguez', fechaInicio: '2023-09-01', fechaFin: '2023-12-15' },
-  ]);
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [carreras, setCarreras] = useState<Carrera[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [nuevoCurso, setNuevoCurso] = useState({ materia: '', profesor: '', fechaInicio: '', fechaFin: '' });
+  const [nuevoCurso, setNuevoCurso] = useState<Partial<Curso>>({ nombre: '', descripcion: '', carrera: { idCarrera: 0, nombre: '' } });
 
-  const handleAddCourse = () => {
-    setCursos([...cursos, { ...nuevoCurso, id: cursos.length + 1 }]);
-    setShowModal(false);
-    setNuevoCurso({ materia: '', profesor: '', fechaInicio: '', fechaFin: '' });
+  useEffect(() => {
+    fetchCursos();
+    fetchCarreras();
+  }, []);
+
+  const fetchCursos = async () => {
+    try {
+      const cursosData = await courseService.getAllCursos();
+      setCursos(cursosData);
+    } catch (error) {
+      console.error('Error fetching cursos:', error);
+    }
+  };
+
+  const fetchCarreras = async () => {
+    try {
+      const carrerasData = await careerService.getAllCarreras();
+      setCarreras(carrerasData);
+    } catch (error) {
+      console.error('Error fetching carreras:', error);
+    }
+  };
+
+  const handleAddCourse = async () => {
+    try {
+      await courseService.createCurso(nuevoCurso as Curso);
+      setShowModal(false);
+      setNuevoCurso({ nombre: '', descripcion: '', carrera: { idCarrera: 0, nombre: '' } });
+      fetchCursos();
+    } catch (error) {
+      console.error('Error adding course:', error);
+    }
+  };
+
+  const handleDeleteCourse = async (id: number) => {
+    try {
+      await courseService.deleteCurso(id);
+      fetchCursos();
+    } catch (error) {
+      console.error('Error deleting course:', error);
+    }
   };
 
   return (
@@ -33,24 +64,21 @@ const ManageCourses: React.FC = () => {
         <thead>
           <tr>
             <th>ID</th>
-            <th>Materia</th>
-            <th>Profesor</th>
-            <th>Fecha de Inicio</th>
-            <th>Fecha de Fin</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Carrera</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {cursos.map((curso) => (
-            <tr key={curso.id}>
-              <td>{curso.id}</td>
-              <td>{curso.materia}</td>
-              <td>{curso.profesor}</td>
-              <td>{curso.fechaInicio}</td>
-              <td>{curso.fechaFin}</td>
+            <tr key={curso.idCurso}>
+              <td>{curso.idCurso}</td>
+              <td>{curso.nombre}</td>
+              <td>{curso.descripcion}</td>
+              <td>{curso.carrera.nombre}</td>
               <td>
-                <Button variant="info" size="sm" className="me-2">Editar</Button>
-                <Button variant="danger" size="sm">Eliminar</Button>
+                <Button variant="danger" size="sm" onClick={() => handleDeleteCourse(curso.idCurso)}>Eliminar</Button>
               </td>
             </tr>
           ))}
@@ -64,38 +92,37 @@ const ManageCourses: React.FC = () => {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Materia del Curso</Form.Label>
+              <Form.Label>Nombre del Curso</Form.Label>
               <Form.Control 
                 type="text" 
-                placeholder="Ingrese la materia a impartir" 
-                value={nuevoCurso.materia}
-                onChange={(e) => setNuevoCurso({...nuevoCurso, materia: e.target.value})}
+                placeholder="Ingrese el nombre del curso" 
+                value={nuevoCurso.nombre}
+                onChange={(e) => setNuevoCurso({...nuevoCurso, nombre: e.target.value})}
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Profesor</Form.Label>
+              <Form.Label>Descripción</Form.Label>
               <Form.Control 
-                type="text" 
-                placeholder="Ingrese nombre del profesor" 
-                value={nuevoCurso.profesor}
-                onChange={(e) => setNuevoCurso({...nuevoCurso, profesor: e.target.value})}
+                as="textarea" 
+                rows={3}
+                placeholder="Ingrese la descripción del curso" 
+                value={nuevoCurso.descripcion}
+                onChange={(e) => setNuevoCurso({...nuevoCurso, descripcion: e.target.value})}
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Fecha de Inicio</Form.Label>
-              <Form.Control 
-                type="date" 
-                value={nuevoCurso.fechaInicio}
-                onChange={(e) => setNuevoCurso({...nuevoCurso, fechaInicio: e.target.value})}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Fecha de Fin</Form.Label>
-              <Form.Control 
-                type="date" 
-                value={nuevoCurso.fechaFin}
-                onChange={(e) => setNuevoCurso({...nuevoCurso, fechaFin: e.target.value})}
-              />
+              <Form.Label>Carrera</Form.Label>
+              <Form.Select
+                value={nuevoCurso.carrera?.idCarrera}
+                onChange={(e) => setNuevoCurso({...nuevoCurso, carrera: { idCarrera: parseInt(e.target.value), nombre: '' }})}
+              >
+                <option value="">Seleccione una carrera</option>
+                {carreras.map((carrera) => (
+                  <option key={carrera.idCarrera} value={carrera.idCarrera}>
+                    {carrera.nombre}
+                  </option>
+                ))}
+              </Form.Select>
             </Form.Group>
           </Form>
         </Modal.Body>

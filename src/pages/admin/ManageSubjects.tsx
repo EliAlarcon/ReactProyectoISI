@@ -1,59 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form } from 'react-bootstrap';
-
-// Definición de interfaces para la tipificación
-interface Usuario {
-  nombre: string;
-  apellido: string;
-}
-
-interface Profesor {
-  idProfesor: number;
-  usuario: Usuario;
-}
-
-interface Materia {
-  idMateria: number;
-  nombre: string;
-  descripcion: string;
-  profesor: Profesor | null;
-}
+import { subjectService } from '../../services/subjectService';
+import { userService } from '../../services/userService';
+import { courseService } from '../../services/courseService';
+import { Materia } from '../../types/Materia';
+import { User } from '../../types/User';
+import { Curso } from '../../types/Curso';
 
 export const ManageSubjects: React.FC = () => {
-  const [materias, setMaterias] = useState<Materia[]>([
-    { idMateria: 1, nombre: 'Matemáticas', descripcion: 'Curso de matemáticas avanzadas', profesor: { idProfesor: 1, usuario: { nombre: 'Juan', apellido: 'Perez' } } },
-    { idMateria: 2, nombre: 'Física', descripcion: 'Introducción a la física moderna', profesor: { idProfesor: 2, usuario: { nombre: 'Maria', apellido: 'Gomez' } } },
-  ]);
+  const [materias, setMaterias] = useState<Materia[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [nuevaMateria, setNuevaMateria] = useState<Materia>({ idMateria: 0, nombre: '', descripcion: '', profesor: null }); // Se agregó idMateria: 0
-  const [profesores, setProfesores] = useState<Profesor[]>([
-    { idProfesor: 1, usuario: { nombre: 'Juan', apellido: 'Perez' } },
-    { idProfesor: 2, usuario: { nombre: 'Maria', apellido: 'Gomez' } },
-  ]);
+  const [nuevaMateria, setNuevaMateria] = useState<Partial<Materia>>({ 
+    nombre: '', 
+    descripcion: '', 
+    curso: undefined,
+    profesor: undefined
+  });
+  const [profesores, setProfesores] = useState<User[]>([]);
+  const [cursos, setCursos] = useState<Curso[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const handleAddOrUpdateSubject = () => {
-    if (editingId) {
-      // Actualizar la materia existente en el array 'materias'
-      setMaterias(materias.map(m => 
-        m.idMateria === editingId ? {...nuevaMateria, idMateria: editingId} : m
-      ));
-    } else {
-      // Agregar la nueva materia al array 'materias'
-      setMaterias([...materias, {...nuevaMateria, idMateria: materias.length + 1}]);
+  useEffect(() => {
+    fetchMaterias();
+    fetchProfesores();
+    fetchCursos();
+  }, []);
+
+  const fetchMaterias = async () => {
+    try {
+      const materiasData = await subjectService.getAllMaterias();
+      setMaterias(materiasData);
+    } catch (error) {
+      console.error('Error fetching materias:', error);
     }
-    setShowModal(false);
-    setNuevaMateria({ idMateria: 0, nombre: '', descripcion: '', profesor: null }); // Se agregó idMateria: 0
-    setEditingId(null);
   };
 
-  const handleDeleteSubject = (id: number) => {
-    setMaterias(materias.filter(m => m.idMateria !== id));
+  const fetchProfesores = async () => {
+    try {
+      const users = await userService.getAllUsers();
+      const profesoresData = users.filter(user => user.tipo === 'Profesor');
+      setProfesores(profesoresData);
+    } catch (error) {
+      console.error('Error fetching profesores:', error);
+    }
+  };
+
+  const fetchCursos = async () => {
+    try {
+      const cursosData = await courseService.getAllCursos();
+      setCursos(cursosData);
+    } catch (error) {
+      console.error('Error fetching cursos:', error);
+    }
+  };
+
+  const handleAddOrUpdateSubject = async () => {
+    try {
+      if (editingId) {
+        await subjectService.updateMateria({ ...nuevaMateria, idMateria: editingId } as Materia);
+      } else {
+        await subjectService.createMateria(nuevaMateria as Materia);
+      }
+      setShowModal(false);
+      setNuevaMateria({ nombre: '', descripcion: '', curso: undefined, profesor: undefined });
+      setEditingId(null);
+      fetchMaterias();
+    } catch (error) {
+      console.error('Error adding/updating materia:', error);
+    }
+  };
+
+  const handleDeleteSubject = async (id: number) => {
+    try {
+      await subjectService.deleteMateria(id);
+      fetchMaterias();
+    } catch (error) {
+      console.error('Error deleting materia:', error);
+    }
   };
 
   const handleEditSubject = (materia: Materia) => {
     setNuevaMateria(materia);
-    setEditingId(materia.idMateria ?? null);
+    setEditingId(materia.idMateria);
     setShowModal(true);
   };
 
@@ -69,6 +97,7 @@ export const ManageSubjects: React.FC = () => {
             <th>ID</th>
             <th>Nombre</th>
             <th>Descripción</th>
+            <th>Curso</th>
             <th>Profesor</th>
             <th>Acciones</th>
           </tr>
@@ -79,7 +108,8 @@ export const ManageSubjects: React.FC = () => {
               <td>{materia.idMateria}</td>
               <td>{materia.nombre}</td>
               <td>{materia.descripcion}</td>
-              <td>{materia.profesor?.usuario.nombre} {materia.profesor?.usuario.apellido}</td>
+              <td>{materia.curso?.nombre}</td>
+              <td>{materia.profesor?.nombre} {materia.profesor?.apellido}</td>
               <td>
                 <Button variant="info" size="sm" className="me-2" onClick={() => handleEditSubject(materia)}>Editar</Button>
                 <Button variant="danger" size="sm" onClick={() => materia.idMateria && handleDeleteSubject(materia.idMateria)}>Eliminar</Button>
@@ -105,28 +135,45 @@ export const ManageSubjects: React.FC = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Descripción</Form.Label>
+              <Form.Label>Descripción (Horario)</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={3}
-                placeholder="Ingrese una descripción"
+                placeholder="Ingrese el horario, ej: 7:00 - 10:30"
                 value={nuevaMateria.descripcion}
                 onChange={(e) => setNuevaMateria({...nuevaMateria, descripcion: e.target.value})}
               />
             </Form.Group>
             <Form.Group className="mb-3">
+              <Form.Label>Curso</Form.Label>
+              <Form.Select
+                value={nuevaMateria.curso?.idCurso || ''}
+                onChange={(e) => {
+                  const selectedCurso = cursos.find(c => c.idCurso === Number(e.target.value));
+                  setNuevaMateria({...nuevaMateria, curso: selectedCurso});
+                }}
+              >
+                <option value="">Seleccione un curso</option>
+                {cursos.map(curso => (
+                  <option key={curso.idCurso} value={curso.idCurso}>
+                    {curso.nombre}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Profesor</Form.Label>
               <Form.Select
-                value={nuevaMateria.profesor?.idProfesor || ''}
+                value={nuevaMateria.profesor?.idUsuario || ''}
                 onChange={(e) => {
-                  const selectedProfesor = profesores.find(p => p.idProfesor === Number(e.target.value));
-                  setNuevaMateria({...nuevaMateria, profesor: selectedProfesor || null});
+                  const selectedProfesor = profesores.find(p => p.idUsuario === Number(e.target.value));
+                  setNuevaMateria({...nuevaMateria, profesor: selectedProfesor});
                 }}
               >
                 <option value="">Seleccione un profesor</option>
                 {profesores.map(profesor => (
-                  <option key={profesor.idProfesor} value={profesor.idProfesor}>
-                    {profesor.usuario.nombre} {profesor.usuario.apellido}
+                  <option key={profesor.idUsuario} value={profesor.idUsuario}>
+                    {profesor.nombre} {profesor.apellido}
                   </option>
                 ))}
               </Form.Select>

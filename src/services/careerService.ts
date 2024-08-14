@@ -3,7 +3,7 @@ import { Carrera } from '../types/Carrera';
 
 const API_URL = 'http://localhost:8085/api/carreras';
 
-export const classService = {
+export const careerService = {
   getAllCarreras: async (): Promise<Carrera[]> => {
     const response = await axios.get(API_URL);
     return response.data;
@@ -27,6 +27,4 @@ export const classService = {
   deleteCarrera: async (id: number): Promise<void> => {
     await axios.delete(`${API_URL}/${id}`);
   },
-
-  
 };

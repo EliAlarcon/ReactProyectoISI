@@ -2,11 +2,11 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import NavBar from '../components/common/NavBar';
 import AdminSidebar from '../components/admin/AdminSidebar';
-import AdminDashboard from '../pages/admin/AdminDashboard';
 import ManageUsers from '../pages/admin/ManageUsers';
 import ManageCourses from '../pages/admin/ManageCourses';
 import { ManageSubjects } from '../pages/admin/ManageSubjects';
 import { ManageStudents } from '../pages/admin/ManageStudents';
+import ManageCareers from '../pages/admin/ManageCareers';
 
 const AdminLayout: React.FC = () => {
   return (
@@ -19,11 +19,11 @@ const AdminLayout: React.FC = () => {
           </nav>
           <main className="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <Routes>
-              <Route path="/" element={<AdminDashboard />} />
               <Route path="/users" element={<ManageUsers />} />
               <Route path="/courses" element={<ManageCourses />} />
               <Route path="/subjects" element={<ManageSubjects />} />
               <Route path="/students" element={<ManageStudents />} />
+              <Route path="/career" element={<ManageCareers />} />
             </Routes>
           </main>
         </div>
