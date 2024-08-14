@@ -3,7 +3,7 @@ import { Materia } from '../types/Materia';
 
 const API_URL = 'http://localhost:8085/api/materias';
 
-export const classService = {
+export const materiaService = {
     getAllMaterias: async (): Promise<Materia[]> => {
     const response = await axios.get(API_URL);
     return response.data;
