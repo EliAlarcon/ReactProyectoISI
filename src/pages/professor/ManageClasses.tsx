@@ -60,8 +60,7 @@ const ManageClasses: React.FC = () => {
               <td>{clase.curso}</td>
               <td>{clase.semestre}</td>
               <td>
-                <Button variant="info" size="sm" className="me-2">Editar</Button>
-                <Button variant="danger" size="sm">Eliminar</Button>
+                <Button variant="info" size="sm" className="me-2">Ver Notas</Button>
               </td>
             </tr>
           ))}
