@@ -3,7 +3,7 @@ import { Curso } from '../types/Curso';
 
 const API_URL = 'http://localhost:8085/api/cursos';
 
-export const classService = {
+export const courseService = {
     getAllCursos: async (): Promise<Curso[]> => {
     const response = await axios.get(API_URL);
     return response.data;

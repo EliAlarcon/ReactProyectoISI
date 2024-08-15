@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form } from 'react-bootstrap';
-import { materiaService } from '../../services/materiaService';
+import { Table, Button } from 'react-bootstrap';
 import { useAuth } from '../../context/AuthContext';
+import { subjectService } from '../../services/subjectService';
 
 interface Clase {
   id: number;
@@ -17,10 +17,10 @@ const ManageClasses: React.FC = () => {
 
   useEffect(() => {
     getAllMaterias();
-  }, [])
+  },)
   
   const getAllMaterias = async () => {
-    const response = await materiaService.getAllMaterias();
+    const response = await subjectService.getAllMaterias();
     const nuevasClases: Clase[] = response
       .filter((element) => element.profesor.idUsuario === user?.idUsuario)
       .map((element, index) => ({
