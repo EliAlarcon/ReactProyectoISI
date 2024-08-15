@@ -11,6 +11,7 @@ const ProfessorSidebar: React.FC = () => {
       <div className="list-group list-group-flush">
         <Link to="/professor/classes" className="list-group-item list-group-item-action">Administrar Clases</Link>
         <Link to="/professor/grades" className="list-group-item list-group-item-action">Calificar Tareas</Link>
+        <Link to="/professor/tareas" className="list-group-item list-group-item-action">Administrar Tareas</Link>
         <button onClick={logout} className="list-group-item list-group-item-action">Cerrar Sesión</button>
       </div>
     </div>

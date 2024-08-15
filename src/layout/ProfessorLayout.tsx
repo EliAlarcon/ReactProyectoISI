@@ -4,6 +4,7 @@ import NavBar from '../components/common/NavBar';
 import ProfessorSidebar from '../components/professor/ProfessorSidebar';
 import ManageClasses from '../pages/professor/ManageClasses';
 import GradeAssignments from '../pages/professor/GradeAssignments';
+import ManageTareas from '../pages/professor/ManageTareas';
 
 const ProfessorLayout: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ const ProfessorLayout: React.FC = () => {
             <Routes>
               <Route path="/classes" element={<ManageClasses />} />
               <Route path="/grades" element={<GradeAssignments />} />
+              <Route path="/tareas" element={<ManageTareas/>} />
             </Routes>
           </main>
         </div>
